@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Soil Resistivity History</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#edf1f5;
+    padding:20px;
+}
+
+.container{
+    max-width:1600px;
+    margin:auto;
+}
+
+.main-title{
+    background:#003366;
+    color:white;
+    padding:20px;
+    font-size:32px;
+    text-align:center;
+    font-weight:bold;
+    margin-bottom:25px;
+    border-radius:8px;
+}
+
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+button{
+    background:#0047ab;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.history-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+    gap:20px;
+}
+
+.history-card{
+    background:white;
+    border-radius:10px;
+    overflow:hidden;
+    border:1px solid #d5d5d5;
+    box-shadow:0 3px 10px rgba(0,0,0,0.08);
+}
+
+.card-header{
+    background:#16375d;
+    color:white;
+    padding:15px;
+}
+
+.card-body{
+    padding:20px;
+}
+
+.info-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:20px;
+}
+
+.info-box{
+    background:#f4f7fb;
+    padding:12px;
+    border-left:5px solid #003366;
+}
+
+.label{
+    font-size:12px;
+    color:#666;
+    margin-bottom:6px;
+}
+
+.value{
+    font-size:18px;
+    font-weight:bold;
+    color:#003366;
+}
+
+.result-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.result-card{
+    background:#fafafa;
+    border:1px solid #ddd;
+    padding:12px;
+}
+
+.table-wrapper{
+    overflow:auto;
+    margin-top:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:center;
+    font-size:14px;
+}
+
+th{
+    background:#eef5ff;
+}
+
+.chart-box{
+    margin-top:20px;
+}
+
+.chart-box img{
+    width:100%;
+    border:1px solid #ccc;
+}
+
+.photo-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:15px;
+}
+
+.photo-grid img{
+    width:100%;
+    height:180px;
+    object-fit:cover;
+}
+
+.action-buttons{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+}
+
+.small-btn{
+    flex:1;
+}
+
+.empty-box{
+    background:white;
+    padding:80px;
+    text-align:center;
+    border-radius:10px;
+    color:#666;
+    font-size:22px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="main-title">
+        Soil Resistivity Test History
+    </div>
+
+    <div class="top-bar">
+
+        <button onclick="goBack()">
+            ← Back To Main Report
+        </button>
+
+        <button onclick="clearHistory()">
+            Clear All History
+        </button>
+
+    </div>
+
+    <div id="historyContainer"></div>
+
+</div>
+
+<script>
+
+loadHistory();
+
+function loadHistory(){
+
+    const historyContainer =
+    document.getElementById(
+        "historyContainer"
+    );
+
+    const history =
+    JSON.parse(
+        localStorage.getItem(
+            "wennerHistory"
+        )
+    ) || [];
+
+    if(history.length === 0){
+
+        historyContainer.innerHTML = `
+
+            <div class="empty-box">
+
+                No Saved History Found
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+    history.reverse();
+
+    let html =
+    `<div class="history-grid">`;
+
+    history.forEach((item,index)=>{
+
+        html += `
+
+        <div class="history-card">
+
+            <div class="card-header">
+
+                <h2>
+                    ${item.projectName || "Unnamed Project"}
+                </h2>
+
+                <div>
+                    Saved:
+                    ${item.savedDate}
+                </div>
+
+            </div>
+
+            <div class="card-body">
+
+                <!-- INFO -->
+
+                <div class="info-grid">
+
+                    <div class="info-box">
+
+                        <div class="label">
+                            Project Reference
+                        </div>
+
+                        <div class="value">
+                            ${item.projectReference || "-"}
+                        </div>
+
+                    </div>
+
+                    <div class="info-box">
+
+                        <div class="label">
+                            Location
+                        </div>
+
+                        <div class="value">
+                            ${item.location || "-"}
+                        </div>
+
+                    </div>
+
+                    <div class="info-box">
+
+                        <div class="label">
+                            Engineer
+                        </div>
+
+                        <div class="value">
+                            ${item.engineer || "-"}
+                        </div>
+
+                    </div>
+
+                    <div class="info-box">
+
+                        <div class="label">
+                            Weather
+                        </div>
+
+                        <div class="value">
+                            ${item.weather || "-"}
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- RESULTS -->
+
+                <div class="result-grid">
+
+                    <div class="result-card">
+
+                        <div class="label">
+                            Average Resistivity
+                        </div>
+
+                        <div class="value">
+                            ${item.avgResistivity}
+                        </div>
+
+                    </div>
+
+                    <div class="result-card">
+
+                        <div class="label">
+                            Maximum Resistivity
+                        </div>
+
+                        <div class="value">
+                            ${item.maxResistivity}
+                        </div>
+
+                    </div>
+
+                    <div class="result-card">
+
+                        <div class="label">
+                            Minimum Resistivity
+                        </div>
+
+                        <div class="value">
+                            ${item.minResistivity}
+                        </div>
+
+                    </div>
+
+                    <div class="result-card">
+
+                        <div class="label">
+                            Total Observations
+                        </div>
+
+                        <div class="value">
+                            ${item.observations.length}
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- OBSERVATION TABLE -->
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Spacing</th>
+                                <th>Ohm</th>
+                                <th>C1</th>
+                                <th>P1</th>
+                                <th>P2</th>
+                                <th>C2</th>
+                                <th>Depth</th>
+                                <th>T1</th>
+                                <th>T2</th>
+                                <th>Average</th>
+                                <th>Resistivity</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            ${generateObservationRows(item.observations)}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- CHART -->
+
+                ${
+                    item.chart
+                    ?
+                    `
+                    <div class="chart-box">
+
+                        <img src="${item.chart}">
+
+                    </div>
+                    `
+                    :
+                    ""
+                }
+
+                <!-- PHOTOS -->
+
+                ${
+                    item.img1 || item.img2
+                    ?
+                    `
+                    <div class="photo-grid">
+
+                        ${
+                            item.img1
+                            ?
+                            `<img src="${item.img1}">`
+                            :
+                            ""
+                        }
+
+                        ${
+                            item.img2
+                            ?
+                            `<img src="${item.img2}">`
+                            :
+                            ""
+                        }
+
+                    </div>
+                    `
+                    :
+                    ""
+                }
+
+                <div class="action-buttons">
+
+                    <button
+                    class="small-btn"
+                    onclick="deleteHistory(${history.length - 1 - index})">
+
+                        Delete
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+    html += `</div>`;
+
+    historyContainer.innerHTML = html;
+
+}
+
+function generateObservationRows(observations){
+
+    let rows = "";
+
+    observations.forEach(item=>{
+
+        rows += `
+
+        <tr>
+
+            <td>${item.spacing}</td>
+            <td>${item.ohm}</td>
+            <td>${item.c1}</td>
+            <td>${item.p1}</td>
+            <td>${item.p2}</td>
+            <td>${item.c2}</td>
+            <td>${item.depth}</td>
+            <td>${item.t1}</td>
+            <td>${item.t2}</td>
+            <td>${item.average}</td>
+            <td>${item.resistivity}</td>
+
+        </tr>
+
+        `;
+
+    });
+
+    return rows;
+
+}
+
+function deleteHistory(index){
+
+    let history =
+    JSON.parse(
+        localStorage.getItem(
+            "wennerHistory"
+        )
+    ) || [];
+
+    history.splice(index,1);
+
+    localStorage.setItem(
+        "wennerHistory",
+        JSON.stringify(history)
+    );
+
+    loadHistory();
+
+}
+
+function clearHistory(){
+
+    localStorage.removeItem(
+        "wennerHistory"
+    );
+
+    loadHistory();
+
+}
+
+function goBack(){
+
+    window.location.href =
+    "index9.html";
+
+}
+
+</script>
+
+</body>
+</html>
